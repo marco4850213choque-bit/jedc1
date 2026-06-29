@@ -1,88 +1,139 @@
-Sistema de Puntos para Juegos  
+Marcador Multijuegos Super Simple  
   
-body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 20px; }  
-h1 { color: #333; }  
-.card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }  
-.score { font-size: 48px; font-weight: bold; color: #007bff; margin: 20px 0; }  
-button { font-size: 20px; padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; color: white; }  
-.btn-add { background-color: #28a745; }  
-.btn-sub { background-color: #dc3545; }  
+body { font-family: sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; }  
+.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 15px auto; }  
+.game-row { background: #eef2f7; padding: 12px; border-radius: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }  
+.game-name { font-weight: bold; font-size: 18px; }  
+.score { font-size: 28px; font-weight: bold; color: #007bff; }  
+button { font-size: 16px; padding: 12px 20px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }  
+.btn-add { background-color: #28a745; color: white; }  
+.btn-sub { background-color: #dc3545; color: white; }  
+.btn-menu { background-color: #4f46e5; color: white; width: 90%; margin: 10px 0; }  
 .hidden { display: none; }  
-.nav-btn { background-color: #6c757d; }  
- 
+select, input { font-size: 16px; padding: 10px; width: 85%; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; text-align: center; }  
+.code-box { font-size: 24px; font-weight: bold; color: #4f46e5; background: #e0e7ff; padding: 10px; border-radius: 6px; letter-spacing: 2px; }  
 
   
-import { initializeApp } from "gstatic.com";  
-import { getDatabase, ref, onValue, set, runTransaction } from "gstatic.com"; 
-
-// !!! REEMPLAZA ESTO CON TUS DATOS DE FIREBASE !!!  
-const firebaseConfig = {  
-apiKey: "TU\_API\_KEY",  
-authDomain: "TU\_firebaseapp.com",  
-databaseURL: "https://TU\_firebaseio.com",  
-projectId: "TU\_PROYECTO",  
-storageBucket: "TU\_appspot.com"  
-}; 
-
-// Inicializar Firebase  
-const app = initializeApp(firebaseConfig);  
-const db = getDatabase(app);  
-const puntosRef = ref(db, 'partida/puntos'); 
-
-// Elementos de la interfaz  
-const viewSeleccion = document.getElementById('view-seleccion');  
-const viewBase = document.getElementById('view-base');  
-const viewControl = document.getElementById('view-control');  
-const scoreBase = document.getElementById('score-base');  
-const scoreControl = document.getElementById('score-control'); 
-
-// Escuchar cambios en la base de datos en tiempo real  
-onValue(puntosRef, (snapshot) => {  
-const puntos = snapshot.val() || 0;  
-scoreBase.innerText = puntos;  
-scoreControl.innerText = puntos;  
-}); 
-
-// Funciones para cambiar de pantalla  
-window.mostrarBase = function() {  
-viewSeleccion.classList.add('hidden');  
-viewBase.classList.remove('hidden');  
-} 
-
-window.mostrarControl = function() {  
-viewSeleccion.classList.add('hidden');  
-viewControl.classList.remove('hidden');  
-} 
-
-// Funciones para sumar y restar puntos de forma segura (Transacciones)  
-window.modificarPuntos = function(valor) {  
-runTransaction(puntosRef, (currentPuntos) => {  
-return (currentPuntos || 0) + valor;  
-});  
-} 
-
-window.reiniciarPuntos = function() {  
-set(puntosRef, 0);  
-}  
   
-  
- 
 
   
-¿Qué es este celular?  
-📱 Centro Base (Pantalla)  
-🎮 Control Remoto (Mando)  
- 
+Marcador 5 Juegos  
+🖥️ Crear Centro Base  
+  
+  
+🎮 Conectar Control  
 
   
+Código para conectar los controles:  
+Cargando...  
 Marcador Central  
-0  
-Los jugadores están modificando los puntos en tiempo real.  
-Reiniciar a 0  
- 
+  
+🔄 Reiniciar Todo  
 
   
-Tu Control  
+Modo Control
+
+Elige el juego: 
+
+  
 0  
 +1 Punto  
-\-1 Punto
+\-1 Punto  
+
+  
+const juegos = \["Juego 1", "Juego 2", "Juego 3", "Juego 4", "Juego 5"\];  
+let puntuaciones = { "Juego 1": 0, "Juego 2": 0, "Juego 3": 0, "Juego 4": 0, "Juego 5": 0 };  
+let peer, conn;  
+let conexionesControles = \[\];
+
+// --- LÓGICA DEL CENTRO BASE ---  
+function iniciarBase() {  
+document.getElementById('view-inicio').classList.add('hidden');  
+document.getElementById('view-base').classList.remove('hidden');  
+dibujarBase();
+
+// Genera un código corto aleatorio de 4 letras  
+const idAleatorio = Math.random().toString(36).substring(2, 6).toUpperCase();  
+peer = new Peer(idAleatorio);
+
+peer.on('open', (id) => {  
+document.getElementById('txt-codigo-base').innerText = id;  
+});
+
+// Escucha cuando un control remoto se conecta  
+peer.on('connection', (c) => {  
+conexionesControles.push(c);  
+// Enviar las puntuaciones actuales al nuevo control  
+c.on('open', () => c.send({ tipo: 'actualizar', datos: puntuaciones }));
+
+// Escuchar si el control suma o resta  
+c.on('data', (data) => {  
+if (data.tipo === 'modificar') {  
+puntuaciones\[data.juego\] += data.valor;  
+dibujarBase();  
+notificarATodos();  
+} else if (data.tipo === 'reiniciar') {  
+reiniciarTodo();  
+}  
+});  
+});  
+}
+
+function dibujarBase() {  
+const lista = document.getElementById('lista-juegos-base');  
+lista.innerHTML = '';  
+juegos.forEach(j => {  
+lista.innerHTML += `<div class="game-row"> <span class="game-name">${j}</span> <span class="score">${puntuaciones[j]}</span> </div>`;  
+});  
+}
+
+function reiniciarTodo() {  
+juegos.forEach(j => puntuaciones\[j\] = 0);  
+dibujarBase();  
+notificarATodos();  
+}
+
+function notificarATodos() {  
+conexionesControles.forEach(c => {  
+if(c.open) c.send({ tipo: 'actualizar', datos: puntuaciones });  
+});  
+}
+
+// --- LÓGICA DEL CONTROL REMOTO ---  
+function iniciarControl() {  
+const codigo = document.getElementById('input-codigo').value.trim().toUpperCase();  
+if (!codigo) return alert("Escribe el código de la base primero");
+
+peer = new Peer();  
+peer.on('open', () => {  
+conn = peer.connect(codigo);
+
+conn.on('open', () => {  
+document.getElementById('view-inicio').classList.add('hidden');  
+document.getElementById('view-control').classList.remove('hidden');
+
+// Llenar el selector  
+const select = document.getElementById('select-juego');  
+select.innerHTML = '';  
+juegos.forEach(j => select.innerHTML += `<option value="${j}">${j}</option>`);  
+});
+
+// Recibir puntuaciones actualizadas desde la base  
+conn.on('data', (data) => {  
+if (data.tipo === 'actualizar') {  
+puntuaciones = data.datos;  
+actualizarScoreControl();  
+}  
+});  
+});  
+}
+
+function actualizarScoreControl() {  
+const juegoSel = document.getElementById('select-juego').value;  
+document.getElementById('score-control').innerText = puntuaciones\[juegoSel\];  
+}
+
+function enviarPuntos(valor) {  
+const juegoSel = document.getElementById('select-juego').value;  
+conn.send({ tipo: 'modificar', juego: juegoSel, valor: valor });  
+}
