@@ -1,0 +1,88 @@
+Sistema de Puntos para Juegos  
+  
+body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 20px; }  
+h1 { color: #333; }  
+.card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }  
+.score { font-size: 48px; font-weight: bold; color: #007bff; margin: 20px 0; }  
+button { font-size: 20px; padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; color: white; }  
+.btn-add { background-color: #28a745; }  
+.btn-sub { background-color: #dc3545; }  
+.hidden { display: none; }  
+.nav-btn { background-color: #6c757d; }  
+ 
+
+  
+import { initializeApp } from "gstatic.com";  
+import { getDatabase, ref, onValue, set, runTransaction } from "gstatic.com"; 
+
+// !!! REEMPLAZA ESTO CON TUS DATOS DE FIREBASE !!!  
+const firebaseConfig = {  
+apiKey: "TU\_API\_KEY",  
+authDomain: "TU\_firebaseapp.com",  
+databaseURL: "https://TU\_firebaseio.com",  
+projectId: "TU\_PROYECTO",  
+storageBucket: "TU\_appspot.com"  
+}; 
+
+// Inicializar Firebase  
+const app = initializeApp(firebaseConfig);  
+const db = getDatabase(app);  
+const puntosRef = ref(db, 'partida/puntos'); 
+
+// Elementos de la interfaz  
+const viewSeleccion = document.getElementById('view-seleccion');  
+const viewBase = document.getElementById('view-base');  
+const viewControl = document.getElementById('view-control');  
+const scoreBase = document.getElementById('score-base');  
+const scoreControl = document.getElementById('score-control'); 
+
+// Escuchar cambios en la base de datos en tiempo real  
+onValue(puntosRef, (snapshot) => {  
+const puntos = snapshot.val() || 0;  
+scoreBase.innerText = puntos;  
+scoreControl.innerText = puntos;  
+}); 
+
+// Funciones para cambiar de pantalla  
+window.mostrarBase = function() {  
+viewSeleccion.classList.add('hidden');  
+viewBase.classList.remove('hidden');  
+} 
+
+window.mostrarControl = function() {  
+viewSeleccion.classList.add('hidden');  
+viewControl.classList.remove('hidden');  
+} 
+
+// Funciones para sumar y restar puntos de forma segura (Transacciones)  
+window.modificarPuntos = function(valor) {  
+runTransaction(puntosRef, (currentPuntos) => {  
+return (currentPuntos || 0) + valor;  
+});  
+} 
+
+window.reiniciarPuntos = function() {  
+set(puntosRef, 0);  
+}  
+  
+  
+ 
+
+  
+¿Qué es este celular?  
+📱 Centro Base (Pantalla)  
+🎮 Control Remoto (Mando)  
+ 
+
+  
+Marcador Central  
+0  
+Los jugadores están modificando los puntos en tiempo real.  
+Reiniciar a 0  
+ 
+
+  
+Tu Control  
+0  
++1 Punto  
+\-1 Punto
