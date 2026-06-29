@@ -1,139 +1,189 @@
-Marcador Multijuegos Super Simple  
+Control de Puntos - 5 Juegos y Equipos  
   
-body { font-family: sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; }  
-.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 15px auto; }  
-.game-row { background: #eef2f7; padding: 12px; border-radius: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }  
-.game-name { font-weight: bold; font-size: 18px; }  
-.score { font-size: 28px; font-weight: bold; color: #007bff; }  
+body { font-family: system-ui, sans-serif; text-align: center; background-color: #f3f4f6; margin: 0; padding: 15px; color: #1f2937; }  
+.card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 500px; margin: 15px auto; }  
+table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 14px; }  
+th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: center; }  
+th { background-color: #4f46e5; color: white; }  
+tr:nth-child(even) { background-color: #f9fafb; }  
+.total-col { font-weight: bold; color: #10b981; background-color: #f0fdf4; }  
 button { font-size: 16px; padding: 12px 20px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }  
-.btn-add { background-color: #28a745; color: white; }  
-.btn-sub { background-color: #dc3545; color: white; }  
+.btn-add { background-color: #10b981; color: white; width: 45%; }  
+.btn-sub { background-color: #ef4444; color: white; width: 45%; }  
 .btn-menu { background-color: #4f46e5; color: white; width: 90%; margin: 10px 0; }  
 .hidden { display: none; }  
-select, input { font-size: 16px; padding: 10px; width: 85%; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; text-align: center; }  
-.code-box { font-size: 24px; font-weight: bold; color: #4f46e5; background: #e0e7ff; padding: 10px; border-radius: 6px; letter-spacing: 2px; }  
+select, input { font-size: 16px; padding: 10px; width: 85%; margin: 10px 0; border-radius: 6px; border: 1px solid #d1d5db; text-align: center; }  
+.code-box { font-size: 24px; font-weight: bold; color: #4f46e5; background: #e0e7ff; padding: 10px; border-radius: 6px; display: inline-block; margin: 10px 0; }  
+ 
 
   
   
+ 
 
   
-Marcador 5 Juegos  
-🖥️ Crear Centro Base  
+Sistema Torneo 5 Juegos  
+Elige el rol de este celular:  
+🖥️ Celular Base (Ver Tabla General)  
   
   
-🎮 Conectar Control  
+  
+Asignar a: Juego 1  
+Asignar a: Juego 2  
+Asignar a: Juego 3  
+Asignar a: Juego 4  
+Asignar a: Juego 5  
+  
+🎮 Conectar como Estación de Juego  
+ 
 
   
-Código para conectar los controles:  
-Cargando...  
-Marcador Central  
-  
-🔄 Reiniciar Todo  
+Código de Vinculación: ...  
+Tabla General de Posiciones  
+ 
 
   
-Modo Control
-
-Elige el juego: 
+  
+  
+🔄 Reiniciar Todo a 0  
+ 
 
   
-0  
-+1 Punto  
-\-1 Punto  
+Estación de Juego 
+
+Selecciona el Equipo actual: 
+
+Puntos actuales en este juego:  
+0 
 
   
-const juegos = \["Juego 1", "Juego 2", "Juego 3", "Juego 4", "Juego 5"\];  
-let puntuaciones = { "Juego 1": 0, "Juego 2": 0, "Juego 3": 0, "Juego 4": 0, "Juego 5": 0 };  
++1  
+\-1  
+  
+  
++5  
+\-5  
+  
+ 
+
+  
+const equipos = \["Equipo A", "Equipo B", "Equipo C", "Equipo D", "Equipo E"\];  
+const juegos = \["Juego 1", "Juego 2", "Juego 3", "Juego 4", "Juego 5"\]; 
+
+let matrizPuntos = {};  
+equipos.forEach(eq => {  
+matrizPuntos\[eq\] = {};  
+juegos.forEach(ju => matrizPuntos\[eq\]\[ju\] = 0);  
+}); 
+
 let peer, conn;  
-let conexionesControles = \[\];
+let conexionesControles = \[\];  
+let miJuegoAsignado = ""; 
 
-// --- LÓGICA DEL CENTRO BASE ---  
 function iniciarBase() {  
-document.getElementById('view-inicio').classList.add('hidden');  
-document.getElementById('view-base').classList.remove('hidden');  
-dibujarBase();
+document.getElementById('view-inicio').style.display = 'none';  
+document.getElementById('view-base').style.display = 'block';  
+dibujarTabla(); 
 
-// Genera un código corto aleatorio de 4 letras  
-const idAleatorio = Math.random().toString(36).substring(2, 6).toUpperCase();  
-peer = new Peer(idAleatorio);
+const idAleatorio = Math.random().toString(36).substring(2, 6).toUpperCase(); 
+
+// CONFIGURACIÓN CLAVE PARA EVITAR ERRORES HTTPS EN CELULARES  
+peer = new Peer(idAleatorio, {  
+host: 'peerjs.com',  
+port: 443,  
+secure: true  
+}); 
 
 peer.on('open', (id) => {  
 document.getElementById('txt-codigo-base').innerText = id;  
-});
+}); 
 
-// Escucha cuando un control remoto se conecta  
 peer.on('connection', (c) => {  
 conexionesControles.push(c);  
-// Enviar las puntuaciones actuales al nuevo control  
-c.on('open', () => c.send({ tipo: 'actualizar', datos: puntuaciones }));
+c.on('open', () => c.send({ tipo: 'actualizar', datos: matrizPuntos })); 
 
-// Escuchar si el control suma o resta  
 c.on('data', (data) => {  
 if (data.tipo === 'modificar') {  
-puntuaciones\[data.juego\] += data.valor;  
-dibujarBase();  
+matrizPuntos\[data.equipo\]\[data.juego\] += data.valor;  
+if(matrizPuntos\[data.equipo\]\[data.juego\] < 0) matrizPuntos\[data.equipo\]\[data.juego\] = 0;  
+dibujarTabla();  
 notificarATodos();  
-} else if (data.tipo === 'reiniciar') {  
-reiniciarTodo();  
 }  
 });  
 });  
-}
+} 
 
-function dibujarBase() {  
-const lista = document.getElementById('lista-juegos-base');  
-lista.innerHTML = '';  
-juegos.forEach(j => {  
-lista.innerHTML += `<div class="game-row"> <span class="game-name">${j}</span> <span class="score">${puntuaciones[j]}</span> </div>`;  
+function dibujarTabla() {  
+const cuerpo = document.getElementById('tabla-cuerpo');  
+cuerpo.innerHTML = '';  
+equipos.forEach(eq => {  
+let fila = `<tr><td><strong>${eq}</strong></td>`;  
+let sumaTotal = 0;  
+juegos.forEach(ju => {  
+const pts = matrizPuntos\[eq\]\[ju\] || 0;  
+fila += `<td>${pts}</td>`;  
+sumaTotal += pts;  
 });  
-}
+fila += `<td class="total-col">${sumaTotal}</td></tr>`;  
+cuerpo.innerHTML += fila;  
+});  
+} 
 
 function reiniciarTodo() {  
-juegos.forEach(j => puntuaciones\[j\] = 0);  
-dibujarBase();  
+if(!confirm("¿Seguro que quieres reiniciar todos los marcadores a 0?")) return;  
+equipos.forEach(eq => {  
+juegos.forEach(ju => matrizPuntos\[eq\]\[ju\] = 0);  
+});  
+dibujarTabla();  
 notificarATodos();  
-}
+} 
 
 function notificarATodos() {  
 conexionesControles.forEach(c => {  
-if(c.open) c.send({ tipo: 'actualizar', datos: puntuaciones });  
+if(c.open) c.send({ tipo: 'actualizar', datos: matrizPuntos });  
 });  
-}
+} 
 
-// --- LÓGICA DEL CONTROL REMOTO ---  
 function iniciarControl() {  
 const codigo = document.getElementById('input-codigo').value.trim().toUpperCase();  
-if (!codigo) return alert("Escribe el código de la base primero");
+miJuegoAsignado = document.getElementById('select-juego-asignado').value;  
+if (!codigo) return alert("Escribe el código de la base primero"); 
 
-peer = new Peer();  
+// CONFIGURACIÓN CLAVE PARA EVITAR ERRORES HTTPS EN CELULARES  
+peer = new Peer({  
+host: 'peerjs.com',  
+port: 443,  
+secure: true  
+}); 
+
 peer.on('open', () => {  
-conn = peer.connect(codigo);
+conn = peer.connect(codigo); 
 
 conn.on('open', () => {  
 document.getElementById('view-inicio').classList.add('hidden');  
-document.getElementById('view-control').classList.remove('hidden');
+document.getElementById('view-control').classList.remove('hidden');  
+document.getElementById('titulo-juego-control').innerText = `Estación: ${miJuegoAsignado}`; 
 
-// Llenar el selector  
-const select = document.getElementById('select-juego');  
-select.innerHTML = '';  
-juegos.forEach(j => select.innerHTML += `<option value="${j}">${j}</option>`);  
-});
+const selectEq = document.getElementById('select-equipo-control');  
+selectEq.innerHTML = '';  
+equipos.forEach(eq => selectEq.innerHTML += `<option value="${eq}">${eq}</option>`);  
+actualizarScoreControl();  
+}); 
 
-// Recibir puntuaciones actualizadas desde la base  
 conn.on('data', (data) => {  
 if (data.tipo === 'actualizar') {  
-puntuaciones = data.datos;  
+matrizPuntos = data.datos;  
 actualizarScoreControl();  
 }  
 });  
 });  
-}
+} 
 
 function actualizarScoreControl() {  
-const juegoSel = document.getElementById('select-juego').value;  
-document.getElementById('score-control').innerText = puntuaciones\[juegoSel\];  
-}
+const eqSel = document.getElementById('select-equipo-control').value;  
+document.getElementById('score-control').innerText = matrizPuntos\[eqSel\]\[miJuegoAsignado\] || 0;  
+} 
 
 function enviarPuntos(valor) {  
-const juegoSel = document.getElementById('select-juego').value;  
-conn.send({ tipo: 'modificar', juego: juegoSel, valor: valor });  
+const eqSel = document.getElementById('select-equipo-control').value;  
+conn.send({ tipo: 'modificar', juego: miJuegoAsignado, equipo: eqSel, valor: valor });  
 }
